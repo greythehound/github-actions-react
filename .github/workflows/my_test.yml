@@ -1,0 +1,97 @@
+name: Send Slack notif for open PR to master
+
+on:
+  pull_request:
+    branches:
+        - master
+    types: opened
+
+jobs:
+  
+  send-notification:
+    name: Send Slack notification for opened PR into master branch 
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Check if source branch RC
+      run: |
+        if [[ "${{ github.head_ref }}" == "rc/*" ]]; then
+            echo "PR is opened for RC branch not hotfix. Stopping workflow."
+            exit 1;
+        fi
+    
+    - name: Set repo env var
+      run: echo "REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" >> $GITHUB_ENV
+      
+    - name: Find original PR id
+      run: |
+        pr_number=$(echo "${{ github.event.pull_request.title }}" | sed -n -r "s/.*#([0-9]+).*/\1/p")
+        if [$pr_number == "" ]; then
+          $pr_number="not found"
+        fi
+        echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+        echo "PR_NUMBER: $pr_number"
+        
+    - name: Find JIRA issue key
+      run: |
+        lookup_string=$(echo "${{ github.event.pull_request.body }} ${{ github.event.pull_request.title }}")
+        issue_key=$(echo "${lookup_string//[$'\t\r\n']}" | sed -n -r "s/.*RIV-([0-9]+).*/\1/p")
+        if [$issue_key == "" ]; then
+          $issue_key="not found"
+        fi
+        echo "ISSUE_KEY=$issue_key" >> $GITHUB_ENV
+        echo "ISSUE_KEY: $issue_key"
+
+    - name: Find Git Username
+      run: |
+        git_username=$(echo "${{github.event.pull_request.user.login}}")
+        echo "$git_username"
+        echo "GIT_USER=$git_username" >> $GITHUB_ENV
+        echo "GIT_USER: $git_username"
+
+
+    - name: Send message to Slack workflow
+      id: slack
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+            payload: |
+                {
+                    "text": "TEST 0",
+                    "blocks": [
+                    {
+                        "type": "header",
+                        "text": {
+                        "type": "plain_text",
+                        "text": ":soon_arrow: [FE] Hotfix preparation starts\n"
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "*PR:*\n<${{ env.REPO_URL }}/pull/${{ github.event.pull_request.number }}|#${{ env.PR_NUMBER }}>"
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": "*JIRA:*\n<https://riversidefm.atlassian.net/browse/RIV-${{ env.ISSUE_KEY }}|RIV-${{ env.ISSUE_KEY }}>"
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": "*Author:*\n${{ env.GIT_USER }}"
+                        }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                        "type": "mrkdwn",
+                        "text": "*Original PR:*\n<${{ env.REPO_URL }}/pull/${{ env.PR_NUMBER }}|#${{ env.PR_NUMBER }}>"
+                        }
+                    }
+                    ]
+                }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.TEST_SERHII_SLACK_CHANNEL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
