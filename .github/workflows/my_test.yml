@@ -28,8 +28,8 @@ jobs:
     - name: Find original PR id
       run: |
         pr_number=$(echo "${{ github.event.pull_request.title }}" | sed -n -r "s/.*#([0-9]+).*/\1/p")
-        if [$pr_number == "" ]; then
-          $pr_number="not found"
+        if [ $pr_number == "" ]; then
+          pr_number="not found"
         fi
         echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
         echo "PR_NUMBER: $pr_number"
@@ -38,8 +38,8 @@ jobs:
       run: |
         lookup_string=$(echo "${{ github.event.pull_request.body }} ${{ github.event.pull_request.title }}")
         issue_key=$(echo "${lookup_string//[$'\t\r\n']}" | sed -n -r "s/.*RIV-([0-9]+).*/\1/p")
-        if [$issue_key == "" ]; then
-          $issue_key="not found"
+        if [ $issue_key == "" ]; then
+          issue_key="not found"
         fi
         echo "ISSUE_KEY=$issue_key" >> $GITHUB_ENV
         echo "ISSUE_KEY: $issue_key"
