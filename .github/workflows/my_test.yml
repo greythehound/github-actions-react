@@ -58,7 +58,7 @@ jobs:
       with:
             payload: |
                 {
-                    "text": "TEST RC",
+                    "text": "TEST 0",
                     "blocks": [
                     {
                         "type": "header",
