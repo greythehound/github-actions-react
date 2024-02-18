@@ -10,8 +10,6 @@ jobs:
   
   send-notification:
     name: Send Slack notification for opened PR into master branch 
-    env:
-      GH_TOKEN: ${{ secrets.AUTOMATION_GITHUB_TOKEN }}
     runs-on: ubuntu-latest
 
     steps:
@@ -21,6 +19,7 @@ jobs:
         if [[ "${{ github.head_ref }}" == "rc/*" ]]; then
             echo "PR is opened for RC branch not hotfix. Stopping workflow."
             exit 1;
+        fi
     
     - name: Set repo env var
       run: echo "REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" >> $GITHUB_ENV
