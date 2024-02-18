@@ -58,7 +58,7 @@ jobs:
       with:
             payload: |
                 {
-                    "text": "Hotfix message",
+                    "text": "TEST 0",
                     "blocks": [
                     {
                         "type": "header",
