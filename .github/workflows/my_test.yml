@@ -18,9 +18,9 @@ jobs:
 
     - name: Check if source branch RC
       run: |
-        (startsWith(${{ github.head_ref }}, 'rc/'))
-        echo "PR is opened for RC branch not hotfix. Stopping workflow."
-        exit 1;
+        if [[ "${{ github.head_ref }}" == "rc/*" ]]; then
+            echo "PR is opened for RC branch not hotfix. Stopping workflow."
+            exit 1;
     
     - name: Set repo env var
       run: echo "REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" >> $GITHUB_ENV
